@@ -33,7 +33,6 @@ public class Cloud extends Spider {
     private YiDongYun yiDongYun = null;
     private BaiDuPan baiDuPan = null;
     private Pan123 pan123 = null;
-    private static final Map<String, ImmutablePair<List<String>, List<String>>> resultMap = new HashMap<>();
 
     private boolean isQuarkInit = false;
     private boolean isAliInit = false;
@@ -162,103 +161,65 @@ public class Cloud extends Spider {
     }
 
     protected String detailContentVodPlayFrom(List<String> shareLinks) {
-        ImmutablePair<List<String>, List<String>> pairs = resultMap.get(Util.MD5(Json.toJson(shareLinks)));
-        if (pairs != null && pairs.left != null && !pairs.left.isEmpty()) {
-            return StringUtils.join(pairs.right, "$$$");
-        }
-
-        getPlayFromAndUrl(shareLinks);
-        pairs = resultMap.get(Util.MD5(Json.toJson(shareLinks)));
-        if (pairs != null && pairs.left != null && !pairs.left.isEmpty()) {
-            return StringUtils.join(pairs.right, "$$$");
-        }
-        return "";
-    }
-
-    protected String detailContentVodPlayUrl(List<String> shareLinks) throws ExecutionException, InterruptedException {
-
-        ImmutablePair<List<String>, List<String>> pairs = resultMap.get(Util.MD5(Json.toJson(shareLinks)));
-        if (pairs != null && pairs.left != null && !pairs.left.isEmpty()) {
-            return StringUtils.join(pairs.left, "$$$");
-        }
-
-        getPlayFromAndUrl(shareLinks);
-        pairs = resultMap.get(Util.MD5(Json.toJson(shareLinks)));
-        if (pairs != null && pairs.left != null && !pairs.left.isEmpty()) {
-            return StringUtils.join(pairs.left, "$$$");
-        }
-        return "";
-    }
-
-
-    //同時获取from 和url ，放入缓存，只要一个函数执行就行，避免重复执行
-    private void getPlayFromAndUrl(List<String> shareLinks) {
-        ExecutorService service = Executors.newFixedThreadPool(4);
-        try {  //首先清空缓存，避免太多缓存
-            resultMap.clear();
-            List<String> urls = new ArrayList<>();
-            List<String> froms = new ArrayList<>();
-            Map<String, String> map = new ConcurrentHashMap<>(shareLinks.size());
-
-
-            CountDownLatch latch = new CountDownLatch(shareLinks.size());
-            int i = 0;
-            for (String shareLink : shareLinks) {
-
-                int finalI = ++i;
-                service.submit(() -> {
-
-                    String url = "";
-                    String from = "";
-                    if (shareLink.matches(Util.patternUC) && uc != null) {
-                        url = uc.detailContentVodPlayUrl(List.of(shareLink));
-                        from = uc.detailContentVodPlayFrom(List.of(shareLink), finalI);
-                    } else if (shareLink.matches(Util.patternQuark) && quark != null) {
-                        url = quark.detailContentVodPlayUrl(List.of(shareLink));
-                        from = quark.detailContentVodPlayFrom(List.of(shareLink), finalI);
-                    }/* else if (shareLink.matches(Util.patternAli)) {
-                urls.add(ali.detailContentVodPlayUrl(List.of(shareLink)));
-            } */ else if (shareLink.contains(URL_CONTAIN) && tianYi != null) {
-                        url = tianYi.detailContentVodPlayUrl(List.of(shareLink));
-                        from = tianYi.detailContentVodPlayFrom(List.of(shareLink), finalI);
-                    } else if (shareLink.contains(YiDongYun.URL_START) && yiDongYun != null) {
-                        url = yiDongYun.detailContentVodPlayUrl(List.of(shareLink));
-                        from = yiDongYun.detailContentVodPlayFrom(List.of(shareLink), finalI);
-                    } else if (shareLink.contains(BaiDuPan.URL_START) && baiDuPan != null) {
-                        url = baiDuPan.detailContentVodPlayUrl(List.of(shareLink));
-                        from = baiDuPan.detailContentVodPlayFrom(List.of(shareLink), finalI);
-                    } else if (shareLink.matches(Pan123Api.regex) && pan123 != null) {
-                        url = pan123.detailContentVodPlayUrl(List.of(shareLink));
-                        from = pan123.detailContentVodPlayFrom(List.of(shareLink), finalI);
-                    }
-                    //只有连接不为空才放入进去
-                    if (StringUtils.isNoneBlank(url)) {
-
-                        map.put(url, from);
-                    }
-                    latch.countDown();
-
-                });
-
-
+        List<String> from = new ArrayList<>();
+        int i = 0;
+        for (String shareLink : shareLinks) {
+            i++;
+            try {
+                if (shareLink.matches(patternUC) && uc != null) {
+                    from.add(uc.detailContentVodPlayFrom(List.of(shareLink), i));
+                } else if (shareLink.matches(patternQuark) && quark != null) {
+                    from.add(quark.detailContentVodPlayFrom(List.of(shareLink), i));
+                } else if (shareLink.contains(URL_CONTAIN) && tianYi != null) {
+                    from.add(tianYi.detailContentVodPlayFrom(List.of(shareLink), i));
+                } else if (shareLink.contains(YiDongYun.URL_START) && yiDongYun != null) {
+                    from.add(yiDongYun.detailContentVodPlayFrom(List.of(shareLink), i));
+                } else if (shareLink.contains(BaiDuPan.URL_START) && baiDuPan != null) {
+                    from.add(baiDuPan.detailContentVodPlayFrom(List.of(shareLink), i));
+                } else if (shareLink.matches(Pan123Api.regex) && pan123 != null) {
+                    from.add(pan123.detailContentVodPlayFrom(List.of(shareLink), i));
+                } else {
+                    from.add("未知网盘[网盘未配置]");
+                }
+            } catch (Exception e) {
+                from.add("解析失败");
             }
-
-            latch.await();
-            map.forEach((k, v) -> {
-                urls.add(k);
-                froms.add(v);
-            });
-
-            resultMap.put(Util.MD5(Json.toJson(shareLinks)), new ImmutablePair<>(urls, froms));
-
-            SpiderDebug.log("---urls：" + Json.toJson(urls));
-            SpiderDebug.log("---froms：" + Json.toJson(froms));
-        } catch (Exception e) {
-            SpiderDebug.log("获取异步结果出错：" + e);
-        } finally {
-            service.shutdown();
         }
+        return StringUtils.join(from, "$$$");
+    }
 
 
+    protected String detailContentVodPlayUrl(List<String> shareLinks) throws Exception {
+        List<String> urls = new ArrayList<>();
+        for (String shareLink : shareLinks) {
+            urls.add("点击加载选集$RESOLVE:" + shareLink);
+        }
+        return StringUtils.join(urls, "$$$");
+    }
+
+    /**
+     * 延迟解析单个分享链接，返回对应的播放地址。
+     * 仅在用户点击具体选集时调用，避免 token 缺失时立即触发扫码。
+     */
+    public String resolveShare(String flag, String shareLink) throws Exception {
+        try {
+            if (shareLink.matches(patternUC) && uc != null) {
+                return uc.detailContentVodPlayUrl(List.of(shareLink));
+            } else if (shareLink.matches(patternQuark) && quark != null) {
+                return quark.detailContentVodPlayUrl(List.of(shareLink));
+            } else if (shareLink.contains(URL_CONTAIN) && tianYi != null) {
+                return tianYi.detailContentVodPlayUrl(List.of(shareLink));
+            } else if (shareLink.contains(YiDongYun.URL_START) && yiDongYun != null) {
+                return yiDongYun.detailContentVodPlayUrl(List.of(shareLink));
+            } else if (shareLink.contains(BaiDuPan.URL_START) && baiDuPan != null) {
+                return baiDuPan.detailContentVodPlayUrl(List.of(shareLink));
+            } else if (shareLink.matches(Pan123Api.regex) && pan123 != null) {
+                return pan123.detailContentVodPlayUrl(List.of(shareLink));
+            } else {
+                return "http://error.com/网盘未配置";
+            }
+        } catch (Exception e) {
+            return "http://error.com/解析失败: " + e.getMessage();
+        }
     }
 }
