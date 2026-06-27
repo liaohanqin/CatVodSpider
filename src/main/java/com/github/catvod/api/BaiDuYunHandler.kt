@@ -25,6 +25,15 @@ class BaiDuYunHandler private constructor() {
     private var service: ScheduledExecutorService? = null
     private var dialog: JDialog? = null
     private var cookies = ""
+
+    /**
+     * 无头模式标志：FreeBox 无头环境下置为 true，跳过 Swing 弹窗。
+     * 由 BaiDuHeadlessHelper 反射调用 setHeadlessMode(true) 设置。
+     */
+    @Volatile
+    var headlessMode: Boolean = false
+        private set
+
     private val headers = mapOf(
         "User-Agent" to "Mozilla/5.0 (Linux; Android 12; SM-X800) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.40 Safari/537.36",
         "Accept" to "application/json, text/plain, */*",
@@ -59,10 +68,20 @@ class BaiDuYunHandler private constructor() {
         fun get(): BaiDuYunHandler {
             return Loader.INSTANCE
         }
+
+        @JvmStatic
+        fun setHeadlessMode(mode: Boolean) {
+            get().headlessMode = mode
+        }
     }
 
     @Throws(java.lang.Exception::class)
     fun startScan(): ByteArray {
+        // 无头模式下跳过 Swing 流程，让调用方走"cookie 为空"分支
+        if (headlessMode) {
+            SpiderDebug.log("BaiDuYunHandler: headless mode, skip Swing QR scan")
+            return ByteArray(0)
+        }
         val result = loginByQRCode()
         // Step 2: Get QR Code
         val byteStr: ByteArray = downloadQRCode(result["qrCodeImageUrl"]!!);

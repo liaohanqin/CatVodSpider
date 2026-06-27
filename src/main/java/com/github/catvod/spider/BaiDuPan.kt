@@ -1,5 +1,6 @@
 package com.github.catvod.spider
 
+import com.github.catvod.api.BaiDuYunHandler
 import com.github.catvod.api.BaiduDrive
 import com.github.catvod.api.BaiduDrive.getVod
 import com.github.catvod.api.BaiduDrive.playerContent
@@ -29,6 +30,15 @@ class BaiDuPan : Spider() {
      */
     @Throws(Exception::class)
     override fun detailContent(ids: MutableList<String>): String? {
+        // cookie 为空时返回 error URL 占位，触发前端扫码入口
+        if (BaiDuYunHandler.get().token.isEmpty()) {
+            val vod = Vod()
+            vod.setVodId(ids[0])
+            vod.setVodName("")
+            vod.setVodPlayFrom("BD原画1")
+            vod.setVodPlayUrl("点击加载选集\$http://error.com/百度网盘未配置")
+            return Result.string(vod)
+        }
         var vod: Vod? = null;
         runBlocking {
             vod = getVod(ids[0])
@@ -74,7 +84,7 @@ class BaiDuPan : Spider() {
      * @param ids share_link 集合
      * @return 詳情內容視頻播放地址
      */
-   
+
     fun detailContentVodPlayUrl(ids: List<String>): String? {
         val playUrl: MutableList<String?> = ArrayList<String?>()
         for (id in ids) {

@@ -1,9 +1,9 @@
 {
-  "spider": "../jar/spider.jar;md5;c2ffa27a32db683a596e144b0d21561a",
+  "spider": "../jar/spider.jar;md5;d2f08cd5245450f7f4f67496cff9d691",
   "sites": [
     {
       "key": "Intruduce",
-      "name": "网盘设置",
+      "name": "验证设置",
       "type": 3,
       "api": "csp_Introduce",
       "searchable": 0,
@@ -47,9 +47,7 @@
         "api_urls": [
           "https://so.252035.xyz/api/search",
           "https://s.panhunt.com/api/search",
-          "https://pansou.app/api/search",
-          "https://panhub.shenzjd.com/api/search",
-          "http://pan.ooil.cn/api/search"
+          "https://pansou.app/api/search"
         ],
         "sources": [
           "夸克"
@@ -67,9 +65,7 @@
         "api_urls": [
           "https://so.252035.xyz/api/search",
           "https://s.panhunt.com/api/search",
-          "https://pansou.app/api/search",
-          "https://panhub.shenzjd.com/api/search",
-          "http://pan.ooil.cn/api/search"
+          "https://pansou.app/api/search"
         ],
         "sources": [
           "UC"
@@ -87,9 +83,7 @@
         "api_urls": [
           "https://so.252035.xyz/api/search",
           "https://s.panhunt.com/api/search",
-          "https://pansou.app/api/search",
-          "https://panhub.shenzjd.com/api/search",
-          "http://pan.ooil.cn/api/search"
+          "https://pansou.app/api/search"
         ],
         "sources": [
           "百度"
@@ -107,9 +101,7 @@
         "api_urls": [
           "https://so.252035.xyz/api/search",
           "https://s.panhunt.com/api/search",
-          "https://pansou.app/api/search",
-          "https://panhub.shenzjd.com/api/search",
-          "http://pan.ooil.cn/api/search"
+          "https://pansou.app/api/search"
         ],
         "sources": [
           "123盘"
@@ -127,9 +119,7 @@
         "api_urls": [
           "https://so.252035.xyz/api/search",
           "https://s.panhunt.com/api/search",
-          "https://pansou.app/api/search",
-          "https://panhub.shenzjd.com/api/search",
-          "http://pan.ooil.cn/api/search"
+          "https://pansou.app/api/search"
         ],
         "sources": [
           "天翼"
@@ -147,9 +137,7 @@
         "api_urls": [
           "https://so.252035.xyz/api/search",
           "https://s.panhunt.com/api/search",
-          "https://pansou.app/api/search",
-          "https://panhub.shenzjd.com/api/search",
-          "http://pan.ooil.cn/api/search"
+          "https://pansou.app/api/search"
         ],
         "sources": [
           "移动"

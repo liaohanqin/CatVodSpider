@@ -191,8 +191,38 @@ public class Cloud extends Spider {
 
     protected String detailContentVodPlayUrl(List<String> shareLinks) throws Exception {
         List<String> urls = new ArrayList<>();
+        int i = 0;
         for (String shareLink : shareLinks) {
-            urls.add("点击加载选集$RESOLVE:" + shareLink);
+            i++;
+            // 调用对应网盘的 detailContentVodPlayFrom 获取 flag 数量，
+            // 据此生成相同数量的 RESOLVE: url，确保 flag 和 url 对齐。
+            // （Quark 的 detailContentVodPlayFrom 会返回多个 flag：原画+普画格式，
+            // 若不匹配数量会导致前端 flag-url 错位）
+            int count = 1;
+            try {
+                String fromStr = null;
+                if (shareLink.matches(patternUC) && uc != null) {
+                    fromStr = uc.detailContentVodPlayFrom(List.of(shareLink), i);
+                } else if (shareLink.matches(patternQuark) && quark != null) {
+                    fromStr = quark.detailContentVodPlayFrom(List.of(shareLink), i);
+                } else if (shareLink.contains(URL_CONTAIN) && tianYi != null) {
+                    fromStr = tianYi.detailContentVodPlayFrom(List.of(shareLink), i);
+                } else if (shareLink.contains(YiDongYun.URL_START) && yiDongYun != null) {
+                    fromStr = yiDongYun.detailContentVodPlayFrom(List.of(shareLink), i);
+                } else if (shareLink.contains(BaiDuPan.URL_START) && baiDuPan != null) {
+                    fromStr = baiDuPan.detailContentVodPlayFrom(List.of(shareLink), i);
+                } else if (shareLink.matches(Pan123Api.regex) && pan123 != null) {
+                    fromStr = pan123.detailContentVodPlayFrom(List.of(shareLink), i);
+                }
+                if (fromStr != null && !fromStr.isEmpty()) {
+                    count = fromStr.split("\\$\\$\\$").length;
+                }
+            } catch (Exception e) {
+                SpiderDebug.log("detailContentVodPlayUrl: getFromCount error: " + e.getMessage());
+            }
+            for (int j = 0; j < count; j++) {
+                urls.add("点击加载选集$RESOLVE:" + shareLink);
+            }
         }
         return StringUtils.join(urls, "$$$");
     }
