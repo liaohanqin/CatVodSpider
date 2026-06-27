@@ -40,7 +40,7 @@ public class QuarkApi {
     private boolean isVip = false;
     private final Cache cache;
     private ScheduledExecutorService service;
-
+    private static volatile boolean headlessMode = false;
 
     private JDialog dialog;
     private String serviceTicket;
@@ -104,6 +104,10 @@ public class QuarkApi {
 
     public static QuarkApi get() {
         return QuarkApi.Loader.INSTANCE;
+    }
+
+    public static void setHeadlessMode(boolean headless) {
+        QuarkApi.headlessMode = headless;
     }
 
     public void setCookie(String token) throws Exception {
@@ -302,7 +306,12 @@ public class QuarkApi {
             cache.getUser().clean();
             e.printStackTrace();
             stopService();
-            startFlow();
+            if (headlessMode) {
+                SpiderDebug.log("initUserInfo: exception in headless mode, skipping GUI flow");
+                SpiderDebug.log("initUserInfo: exception details: " + e.getMessage());
+            } else {
+                startFlow();
+            }
         } finally {
             try {
                 while (cache.getUser().getCookie().isEmpty()) Thread.sleep(250);
@@ -365,8 +374,16 @@ public class QuarkApi {
 
     private boolean getVip() throws Exception {
         Map<String, Object> listData = Json.parseSafe(api("member?pr=ucpro&fr=pc&uc_param_str=&fetch_subscribe=true&_ch=home&fetch_identity=true", null, null, 0, "GET"), Map.class);
-        return ((Map<String, String>) listData.get("data")).get("member_type").contains("VIP");
-
+        if (listData == null || listData.get("data") == null) {
+            SpiderDebug.log("getVip: listData or data is null, returning false");
+            return false;
+        }
+        Object memberType = ((Map<String, Object>) listData.get("data")).get("member_type");
+        if (memberType == null) {
+            SpiderDebug.log("getVip: member_type is null, returning false");
+            return false;
+        }
+        return memberType.toString().contains("VIP");
     }
 
     public List<String> getPlayFormatList() {
@@ -830,4 +847,3 @@ public class QuarkApi {
     }
 
 }
-
