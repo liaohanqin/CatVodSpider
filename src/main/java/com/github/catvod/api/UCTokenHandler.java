@@ -297,11 +297,19 @@ public class UCTokenHandler {
         OkResult okResult1 = OkHttp.get(API_URL + pathname, params, headers);
         JsonObject obj = Json.safeObject(okResult1.getBody());
         if (okResult1.getCode() != 200) {
-            Util.notify(obj.get("error_info").getAsString());
-            SpiderDebug.log("uc TV 错误信息：" + obj.get("error_info").getAsString());
+            String errorInfo = obj.has("error_info") && !obj.get("error_info").isJsonNull()
+                    ? obj.get("error_info").getAsString() : "HTTP " + okResult1.getCode();
+            Util.notify(errorInfo);
+            SpiderDebug.log("uc TV 错误信息：" + errorInfo + "，响应体：" + okResult1.getBody());
             return null;
         }
-        String downloadUrl = obj.get("data").getAsJsonObject().get("video_info").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
+        if (!obj.has("data") || !obj.get("data").getAsJsonObject().has("video_info")) {
+            SpiderDebug.log("uc TV 下载响应缺少 data/video_info：" + okResult1.getBody());
+            return null;
+        }
+        String downloadUrl = obj.get("data").getAsJsonObject()
+                .get("video_info").getAsJsonArray().get(0).getAsJsonObject()
+                .get("url").getAsString();
         SpiderDebug.log("uc TV 下载文件内容：" + downloadUrl);
         return downloadUrl;
     }

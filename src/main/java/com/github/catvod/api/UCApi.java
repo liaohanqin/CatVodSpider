@@ -221,7 +221,7 @@ public class UCApi {
     public String playerContent(String[] split, String flag) throws Exception {
         SpiderDebug.log("flag:" + flag);
         String fileId = split[0], fileToken = split[1], shareId = split[2], stoken = split[3];
-        String playUrl = "";
+        String playUrl;
 
         Map<String, String> header = getHeaders();
         header.remove("Host");
@@ -230,11 +230,17 @@ public class UCApi {
 
             playUrl = this.getDownload(shareId, stoken, fileId, fileToken, true);
             SpiderDebug.log("origin playUrl:" + playUrl);
+            if (StringUtils.isBlank(playUrl)) {
+                return Result.get().url("").msg("获取下载地址失败，请重试或切换其他线路").string();
+            }
             return Result.get().url(Launcher.buildProxyUrl(playUrl, new HashMap<>())).string();
         } else {
 
             playUrl = this.getLiveTranscoding(shareId, stoken, fileId, fileToken, flag);
             SpiderDebug.log("origin playUrl:" + playUrl);
+            if (StringUtils.isBlank(playUrl)) {
+                return Result.get().url("").msg("获取转码地址失败，请重试或切换其他线路").string();
+            }
             return Result.get().url(proxyVideoUrl(playUrl, new HashMap<>())).string();
         }
 
@@ -768,4 +774,3 @@ public class UCApi {
 
 
 }
-

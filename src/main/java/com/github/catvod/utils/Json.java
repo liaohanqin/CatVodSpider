@@ -41,8 +41,10 @@ public class Json {
 
     public static JsonObject safeObject(String extend) {
         try {
-            return JsonParser.parseString(extend).getAsJsonObject();
-        } catch (JsonSyntaxException e) {
+            if (extend == null || extend.isEmpty()) return new JsonObject();
+            JsonElement element = JsonParser.parseString(extend);
+            return element.isJsonObject() ? element.getAsJsonObject() : new JsonObject();
+        } catch (Exception e) {
             return new JsonObject();
         }
     }
