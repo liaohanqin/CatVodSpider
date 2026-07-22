@@ -201,8 +201,8 @@ public class Xb6v extends Spider {
 
     @Override
     public String searchContent(String key, boolean quick, String pg) throws Exception {
-        String searchUrl = siteUrl + Util.base64Decode("L2Uvc2VhcmNoLzFpbmRleC5waHA=");
         if (pg.equals("1")) {
+            String searchUrl = getSearchUrl();
             RequestBody formBody = new FormBody.Builder()
                     .add("show", "title")
                     .add("tempid", "1")
@@ -225,9 +225,20 @@ public class Xb6v extends Spider {
             return Result.string(parseVodListFromDoc(response.body().string()));
         } else {
             int page = Integer.parseInt(pg) - 1;
-            searchUrl = nextSearchUrlPrefix + page + nextSearchUrlSuffix;
+            String searchUrl = nextSearchUrlPrefix + page + nextSearchUrlSuffix;
             return Result.string(parseVodListFromDoc(OkHttp.string(searchUrl, getHeader())));
         }
+    }
+
+    /**
+     * 站点会不定期更换搜索入口路径（如 1index.php → 11index.php）反爬，
+     * 从首页搜索表单动态获取，解析失败时回退到已知路径
+     */
+    private String getSearchUrl() {
+        String html = OkHttp.string(siteUrl, getHeader());
+        String action = Jsoup.parse(html).select("form[name=searchform]").attr("action");
+        if (action.isEmpty()) action = Util.base64Decode("L2Uvc2VhcmNoLzExaW5kZXgucGhw");
+        return action.startsWith("http") ? action : siteUrl + action;
     }
 
     @Override

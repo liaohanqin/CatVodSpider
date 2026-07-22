@@ -1,5 +1,5 @@
 {
-  "spider": "../jar/spider.jar;md5;99cb9ad492279b784c3e78ec005dafbb",
+  "spider": "../jar/spider.jar;md5;37bff975fe16020df8f6886d3f6c7b44",
   "sites": [
     {
       "key": "Intruduce",
@@ -279,6 +279,15 @@
       "searchable": 1,
       "changeable": 1,
       "ext": {}
+    },
+    {
+      "key": "xb6v",
+      "name": "xb6v",
+      "type": 3,
+      "api": "csp_Xb6v",
+      "searchable": 1,
+      "changeable": 0,
+      "ext": ""
     }
   ]
 }
