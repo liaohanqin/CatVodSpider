@@ -232,24 +232,34 @@ public class Cloud extends Spider {
      * 仅在用户点击具体选集时调用，避免 token 缺失时立即触发扫码。
      */
     public String resolveShare(String flag, String shareLink) throws Exception {
+        String urls;
         try {
             if (shareLink.matches(patternUC) && uc != null) {
-                return uc.detailContentVodPlayUrl(List.of(shareLink));
+                urls = uc.detailContentVodPlayUrl(List.of(shareLink));
             } else if (shareLink.matches(patternQuark) && quark != null) {
-                return quark.detailContentVodPlayUrl(List.of(shareLink));
+                urls = quark.detailContentVodPlayUrl(List.of(shareLink));
             } else if (shareLink.contains(URL_CONTAIN) && tianYi != null) {
-                return tianYi.detailContentVodPlayUrl(List.of(shareLink));
+                urls = tianYi.detailContentVodPlayUrl(List.of(shareLink));
             } else if (shareLink.contains(YiDongYun.URL_START) && yiDongYun != null) {
-                return yiDongYun.detailContentVodPlayUrl(List.of(shareLink));
+                urls = yiDongYun.detailContentVodPlayUrl(List.of(shareLink));
             } else if (shareLink.contains(BaiDuPan.URL_START) && baiDuPan != null) {
-                return baiDuPan.detailContentVodPlayUrl(List.of(shareLink));
+                urls = baiDuPan.detailContentVodPlayUrl(List.of(shareLink));
             } else if (shareLink.matches(Pan123Api.regex) && pan123 != null) {
-                return pan123.detailContentVodPlayUrl(List.of(shareLink));
+                urls = pan123.detailContentVodPlayUrl(List.of(shareLink));
             } else {
                 return "http://error.com/网盘未配置";
             }
         } catch (Exception e) {
             return "http://error.com/解析失败: " + e.getMessage();
         }
+        // resolveShare 针对单个 flag。部分网盘（如 Quark）会为对齐多格式
+        // flag 而输出多组完全相同的选集（$$$ 分隔），这里只保留第一组。
+        if (urls != null) {
+            String[] groups = urls.split("\\$\\$\\$");
+            if (groups.length > 1) {
+                urls = groups[0];
+            }
+        }
+        return urls;
     }
 }
