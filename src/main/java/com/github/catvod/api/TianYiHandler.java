@@ -41,6 +41,11 @@ public class TianYiHandler {
     private ScheduledExecutorService service;
     private JDialog dialog;
     private Cache cache = null;
+    private static volatile boolean headlessMode = false;
+
+    public static void setHeadlessMode(boolean headless) {
+        TianYiHandler.headlessMode = headless;
+    }
 
     public File getCache() {
         return Path.tv("tianyi");
@@ -85,11 +90,13 @@ public class TianYiHandler {
             String username = jsonObject.get("username").getAsString();
             String password = jsonObject.get("password").getAsString();
             if (StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
-                this.startFlow();
+                if (!headlessMode) {
+                    this.startFlow();
+                }
                 return;
             }
             this.loginWithPassword(username, password);
-        } else {
+        } else if (!headlessMode) {
             this.startFlow();
         }
     }
@@ -537,6 +544,10 @@ public class TianYiHandler {
         }
     }*/
     public void startFlow() {
+        if (headlessMode) {
+            SpiderDebug.log("TianYiHandler: headless mode, skip GUI login dialog");
+            return;
+        }
         Init.run(this::showInput);
     }
 
