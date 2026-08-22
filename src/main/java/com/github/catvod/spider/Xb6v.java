@@ -119,10 +119,19 @@ public class Xb6v extends Spider {
         for (Element source : sourceList) {
             Elements aList = source.select("table a");
             List<String> vodItems = new ArrayList<>();
+            Set<String> seen = new HashSet<>();
             for (Element a : aList) {
                 String episodeUrl = a.attr("href");
-                String episodeName = a.text();
                 if (!episodeUrl.toLowerCase().startsWith("magnet")) continue;
+                // 去重：页面里同一磁力链接可能出现多次（不同表格/重复行）
+                if (!seen.add(episodeUrl)) continue;
+                // 链接文字常重复（多个不同磁力都叫 1080p.HD中英双字.mp4），
+                // 用所在单元格的完整文本（去掉"磁力："前缀）区分版本
+                String episodeName = a.parent().text()
+                        .replace('\u00a0', ' ')
+                        .replaceFirst("^磁力[:：]\\s*", "")
+                        .trim();
+                if (episodeName.isEmpty()) episodeName = a.text();
                 vodItems.add(episodeName + "$" + episodeUrl);
             }
             if (vodItems.size() > 0) {
