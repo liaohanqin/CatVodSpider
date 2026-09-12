@@ -233,6 +233,12 @@ public class UCApi {
             if (StringUtils.isBlank(playUrl)) {
                 return Result.get().url("").msg("获取下载地址失败，请重试或切换其他线路").string();
             }
+            // m3u8（HLS，链接自带 auth_key）直链返回：本地 Rust 代理按
+            // Content-Length 做字节分片，HLS 会返回 500 Invalid range；
+            // mpv / ExoPlayer 均可直接播放 HLS。
+            if (playUrl.contains(".m3u8")) {
+                return Result.get().url(playUrl).string();
+            }
             return Result.get().url(Launcher.buildProxyUrl(playUrl, new HashMap<>())).string();
         } else {
 
